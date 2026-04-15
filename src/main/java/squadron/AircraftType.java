@@ -16,4 +16,11 @@ public enum AircraftType {
         this.speedClass = speedClass;
         this.radarClass = radarClass;
     }
+    public SpeedClass getSpeedClass() {
+        return speedClass;
+    }
+
+    public RadarClass getRadarClass() {
+        return radarClass;
+    }
 }
