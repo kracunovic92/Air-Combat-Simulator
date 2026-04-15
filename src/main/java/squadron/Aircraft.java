@@ -3,7 +3,11 @@ package squadron;
 import common.GridCell;
 import common.Position;
 import common.Side;
+import radar.FlyingObjectType;
+import radar.RadarContact;
+import radar.client.RadarClient;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -20,10 +24,16 @@ public class Aircraft implements Runnable {
     private final CountDownLatch startLatch;
     private final CountDownLatch doneLatch;
 
+    private final RadarClient radarClient;
+
     private volatile  Position position;
     private volatile  boolean active = true;
 
-    public Aircraft(String id, AircraftType type, Side side, Position initialPosition, GridCell patrolCell,CountDownLatch startLatch, CountDownLatch doneLatch){
+    public Aircraft(String id, AircraftType type, Side side, Position initialPosition, GridCell patrolCell,
+                    CountDownLatch startLatch,
+                    CountDownLatch doneLatch,
+                    RadarClient radarClient
+    ){
         this.id = id;
         this.type = type;
         this.side = side;
@@ -31,6 +41,7 @@ public class Aircraft implements Runnable {
         this.patrolCell = patrolCell;
         this.startLatch = startLatch;
         this.doneLatch = doneLatch;
+        this.radarClient = radarClient;
     }
 
     public void start() {
@@ -90,6 +101,18 @@ public class Aircraft implements Runnable {
 
     }
     private void notifyCenter(){
+
+        try {
+            List<RadarContact> contactList = radarClient.reportAndScan(
+                    id,
+                    FlyingObjectType.AIRCRAFT,
+                    position,
+                    type.getRadarClass().getRange()
+            );
+            // TODO: send information to squadron
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 

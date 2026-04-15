@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "radar.grpc";
+option java_outer_classname = "RadarProto";
+
+package radar;
+
+message PositionMessage {
+  double x = 1;
+  double y = 2;
+}
+
+enum FlyingObjectTypeMessage {
+  FLYING_OBJECT_TYPE_UNSPECIFIED = 0;
+  AIRCRAFT = 1;
+  MISSILE = 2;
+}
+
+message ReportAndScanRequest {
+  string id = 1;
+  FlyingObjectTypeMessage type = 2;
+  PositionMessage position = 3;
+  double radarRange = 4;
+}
+
+message RadarContactMessage {
+  string id = 1;
+  FlyingObjectTypeMessage type = 2;
+  PositionMessage position = 3;
+  double distance = 4;
+}
+
+message ReportAndScanResponse {
+  repeated RadarContactMessage contacts = 1;
+}
+
+service RadarGrpcService {
+  rpc ReportAndScan(ReportAndScanRequest) returns (ReportAndScanResponse);
+}
