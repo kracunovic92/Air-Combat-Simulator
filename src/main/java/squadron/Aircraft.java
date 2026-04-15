@@ -16,7 +16,7 @@ public class Aircraft implements Runnable {
     private static final double STEP = 0.1;
 
 
-    private Thread thread;
+
     private final String id;
     private final Side side;
     private final AircraftType type;
@@ -24,24 +24,31 @@ public class Aircraft implements Runnable {
     private final CountDownLatch startLatch;
     private final CountDownLatch doneLatch;
 
+    private final Squadron squadron;
+
     private final RadarClient radarClient;
 
     private volatile  Position position;
+    private volatile Thread thread;
     private volatile  boolean active = true;
 
-    public Aircraft(String id, AircraftType type, Side side, Position initialPosition, GridCell patrolCell,
-                    CountDownLatch startLatch,
-                    CountDownLatch doneLatch,
-                    RadarClient radarClient
+    public Aircraft(String id, AircraftType type, Position initialPosition, GridCell patrolCell,
+                    RadarClient radarClient,
+                    Squadron squadron
     ){
         this.id = id;
         this.type = type;
-        this.side = side;
+        this.side = squadron.getSide();
         this.position = initialPosition;
         this.patrolCell = patrolCell;
-        this.startLatch = startLatch;
-        this.doneLatch = doneLatch;
+        this.startLatch = squadron.getStartLatch();
+        this.doneLatch = squadron.getDoneLatch();
         this.radarClient = radarClient;
+        this.squadron = squadron;
+
+    }
+    public String getId() {
+        return id;
     }
 
     public void start() {
@@ -73,15 +80,11 @@ public class Aircraft implements Runnable {
         }
 
     }
-    public void stop(){
-        Thread stopThread = thread;
-        thread = null;
-        try{
-            stopThread.interrupt();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally {
-            active = false;
+    public void stopAircraft() {
+        active = false;
+        Thread t = thread;
+        if (t != null) {
+            t.interrupt();
         }
     }
 
@@ -97,7 +100,15 @@ public class Aircraft implements Runnable {
 
     }
 
-    private void pauseAccordingToSpeed() {
+    private void pauseAccordingToSpeed() throws InterruptedException {
+        SpeedClass speedClass = type.getSpeedClass();
+
+        int minPause = speedClass.getMinPause();
+        int maxPause = speedClass.getMaxPause();
+
+        int sleepMs = ThreadLocalRandom.current().nextInt(minPause, maxPause + 1);
+
+        Thread.sleep(sleepMs);
 
     }
     private void notifyCenter(){
@@ -109,7 +120,8 @@ public class Aircraft implements Runnable {
                     position,
                     type.getRadarClass().getRange()
             );
-            // TODO: send information to squadron
+            squadron.sendPosition(id, side, type, position);
+            squadron.sendRadarContacts(id, contactList);
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -141,7 +153,7 @@ public class Aircraft implements Runnable {
     }
 
     private double clamp(double value, double min, double max) {
-        return Math.clamp(value, min, max);
+        return Math.max(min, Math.min(max, value));
     }
 
     private double round1(double value) {
