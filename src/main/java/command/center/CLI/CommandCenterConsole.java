@@ -1,4 +1,6 @@
-package command.center;
+package command.center.CLI;
+
+import command.center.ICommandCenter;
 
 import java.util.Scanner;
 
@@ -6,10 +8,12 @@ public class CommandCenterConsole implements Runnable {
 
     private  volatile boolean running = false;
     private final ICommandCenter commandCenter;
+    private final ICommandCenterConsole commandCenterConsole;
     private Thread thread;
 
-    public CommandCenterConsole(ICommandCenter commandCenter){
+    public CommandCenterConsole(ICommandCenter commandCenter, ICommandCenterConsole commandCenterConsole){
         this.commandCenter = commandCenter;
+        this.commandCenterConsole = commandCenterConsole;
     }
 
     public void start(){
@@ -73,37 +77,30 @@ public class CommandCenterConsole implements Runnable {
         switch (cmd) {
 
             case "help" -> printHelp();
-
-            case "print" -> commandCenter.printAirPicture();
-
+            case "print" -> commandCenterConsole.printAirPicture();
             case "return" -> {
                 if (parts.length < 2) {
                     System.out.println("Usage: return <aircraftId>");
                     return;
                 }
-                commandCenter.returnAircraftToBase(parts[1]);
+                commandCenterConsole.returnAircraftToBase(parts[1]);
             }
-
             case "patrol" -> {
                 if (parts.length < 3) {
                     System.out.println("Usage: patrol <aircraftId> <cells>");
                     return;
                 }
-                commandCenter.assignPatrol(parts[1], parts[2]);
+                commandCenterConsole.assignPatrol(parts[1], parts[2]);
             }
-
             case "fire" -> {
                 if (parts.length < 2) {
                     System.out.println("Usage: fire <targetId>");
                     return;
                 }
-                commandCenter.fireAtTarget(parts[1]);
+                commandCenterConsole.fireAtTarget(parts[1]);
             }
-
-            case "fire-nearest" -> commandCenter.fireAtNearestTargets();
-
+            case "fire-nearest" -> commandCenterConsole.fireAtNearestTargets();
             case "exit" -> stop();
-
             default -> System.out.println("Unknown command. Type 'help'.");
         }
     }

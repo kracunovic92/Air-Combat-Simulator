@@ -1,4 +1,4 @@
-package squadron;
+package squadron.aircraft;
 
 public enum SpeedClass {
     VERY_FAST(100, 400),

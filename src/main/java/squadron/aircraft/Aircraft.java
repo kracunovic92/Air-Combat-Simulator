@@ -1,4 +1,4 @@
-package squadron;
+package squadron.aircraft;
 
 import common.GridCell;
 import common.Position;
@@ -6,6 +6,7 @@ import common.Side;
 import radar.FlyingObjectType;
 import radar.RadarContact;
 import radar.client.RadarClient;
+import squadron.Squadron;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -15,27 +16,27 @@ public class Aircraft implements Runnable {
 
     private static final double STEP = 0.1;
 
-
-
     private final String id;
     private final Side side;
     private final AircraftType type;
-    private final GridCell patrolCell;
     private final CountDownLatch startLatch;
     private final CountDownLatch doneLatch;
+
+    /// Lock for handling Landed state
+    private final Object stateLock = new Object();
 
     private final Squadron squadron;
 
     private final RadarClient radarClient;
 
+    private volatile GridCell patrolCell;
+    private volatile AircraftMode mode;
+
     private volatile  Position position;
     private volatile Thread thread;
     private volatile  boolean active = true;
 
-    public Aircraft(String id, AircraftType type, Position initialPosition, GridCell patrolCell,
-                    RadarClient radarClient,
-                    Squadron squadron
-    ){
+    public Aircraft(String id, AircraftType type, Position initialPosition, GridCell patrolCell, RadarClient radarClient, Squadron squadron){
         this.id = id;
         this.type = type;
         this.side = squadron.getSide();
@@ -45,10 +46,33 @@ public class Aircraft implements Runnable {
         this.doneLatch = squadron.getDoneLatch();
         this.radarClient = radarClient;
         this.squadron = squadron;
+        this.mode = AircraftMode.PATROLLING;
 
     }
     public String getId() {
         return id;
+    }
+    public Side getSide(){
+        return  side;
+    }
+
+    public void  handleAssignPatrol(GridCell cell){
+        synchronized (stateLock){
+            patrolCell = cell;
+            position = new Position(cell.column(), cell.row());
+            mode = AircraftMode.PATROLLING;
+            stateLock.notifyAll();
+        }
+    }
+    public void handleReturnToBase(){
+
+        synchronized (stateLock){
+            patrolCell = side.base();
+            position = new Position(patrolCell.column(), patrolCell.row());
+            mode = AircraftMode.LANDED;
+            squadron.sendLanded(id);
+            stateLock.notifyAll();
+        }
     }
 
     public void start() {
@@ -67,9 +91,14 @@ public class Aircraft implements Runnable {
             startLatch.await();
 
             while(active) {
-                move();
+                synchronized (stateLock){
+                    while (active && mode == AircraftMode.LANDED){
+                        stateLock.wait();
+                    }
+                }
+                tick();
                 pauseAccordingToSpeed();
-                notifyCenter();
+                notifyCommandCenter();
             }
 
         }catch (InterruptedException e){
@@ -88,7 +117,17 @@ public class Aircraft implements Runnable {
         }
     }
 
-    private void move() {
+    private void tick(){
+        synchronized (stateLock){
+            switch (mode){
+                case PATROLLING -> movePatrol();
+                case LANDED -> {
+
+                }
+            }
+        }
+    }
+    private void movePatrol() {
 
         double dx = randomDelta();
         double dy = randomDelta();
@@ -111,7 +150,7 @@ public class Aircraft implements Runnable {
         Thread.sleep(sleepMs);
 
     }
-    private void notifyCenter(){
+    private void notifyCommandCenter(){
 
         try {
             List<RadarContact> contactList = radarClient.reportAndScan(
@@ -146,8 +185,8 @@ public class Aircraft implements Runnable {
         double minY = patrolCell.row();
         double maxY = patrolCell.row() + 0.9;
 
-        double x = clamp(round1(p.x()), minX, maxX);
-        double y = clamp(round1(p.y()), minY, maxY);
+        double x = clamp(round1(p.column()), minX, maxX);
+        double y = clamp(round1(p.row()), minY, maxY);
 
         return Position.of(x, y);
     }

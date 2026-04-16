@@ -33,7 +33,8 @@ public class SquadronMessageHandler {
         }
 
         String aircraftId = parts[1];
-        Aircraft aircraft = squadron.findAircraftById(aircraftId);
+
+        squadron.handleReturnToBase(aircraftId);
     }
     private void handlePatrol(String[] parts) {
         if (parts.length < 3) {
@@ -44,9 +45,6 @@ public class SquadronMessageHandler {
         String aircraftId = parts[1];
         String patrolCells = parts[2];
 
-        Aircraft aircraft = squadron.findAircraftById(aircraftId);
-        if (aircraft != null) {
-            System.out.println("PATROL command for " + aircraftId + ": " + patrolCells);
-        }
+        squadron.handleAssignPatrol(aircraftId,patrolCells);
     }
 }

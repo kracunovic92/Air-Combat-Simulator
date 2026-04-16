@@ -1,8 +1,11 @@
 package squadron;
 
+import common.GridCell;
 import common.Position;
 import common.Side;
 import radar.RadarContact;
+import squadron.aircraft.Aircraft;
+import squadron.aircraft.AircraftType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,14 +48,6 @@ public class Squadron {
         this.messageHandler = new SquadronMessageHandler(this);
     }
 
-    public Side getSide() {
-        return side;
-    }
-
-    public String getSquadronId() {
-        return squadronId;
-    }
-
     public void addAircraft(Aircraft plane) {
         if (aircraftList.size() >= 5) {
             throw new IllegalArgumentException("At most 5 planes");
@@ -82,6 +77,7 @@ public class Squadron {
     }
 
     public CountDownLatch getStartLatch() {
+
         return startLatch;
     }
 
@@ -100,17 +96,16 @@ public class Squadron {
     }
 
     public void connect() throws IOException {
+
         socket = new Socket(host, port);
+
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
         messageWriter = new SquadronWriter(out);
+
         messageWriter.sendRegister(side, squadronId);
 
-        startCommandListener();
-    }
-
-    private void startCommandListener() {
         thread = new Thread(() -> {
             try {
                 String line;
@@ -126,12 +121,14 @@ public class Squadron {
 
         thread.start();
     }
+
+    /// Sending current Aircraft position to Command Center
     public void sendPosition(String id, Side side, AircraftType type, Position position) {
         if (messageWriter == null) {
             System.out.println("Not good");
             return;
         }
-        messageWriter.sendPosition(id, side, type, position);
+        messageWriter.sendPosition(id, side, type, position, squadronId);
     }
 
 
@@ -178,4 +175,35 @@ public class Squadron {
             }
         }
     }
+
+    public void handleReturnToBase(String aircraftId){
+
+        Aircraft aircraft = findAircraftById(aircraftId);
+
+        if (aircraft == null) {
+            System.out.println("Unknown aircraft: " + aircraftId);
+            return;
+        }
+
+        aircraft.handleReturnToBase();
+
+    }
+
+    public void handleAssignPatrol(String aircraftId, String patrolCellLabel){
+
+        Aircraft aircraft = findAircraftById(aircraftId);
+
+        if (aircraft == null) {
+            System.out.println("Unknown aircraft: " + aircraftId);
+            return;
+        }
+
+        aircraft.handleAssignPatrol(GridCell.fromLabel(patrolCellLabel));
+
+    }
+
+    public Side getSide() {
+        return side;
+    }
+
 }

@@ -4,7 +4,10 @@ import common.AircraftState;
 import common.GridCell;
 import common.Side;
 import missles.MissleService;
+import radar.FlyingObjectType;
+import radar.RadarContact;
 import squadron.SquadronConnection;
+import squadron.aircraft.AircraftType;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +21,7 @@ public class CommandCenter implements ICommandCenter {
     private final MissleService missleService;
     private final Map<String, AircraftState> friendlyAircraft = new ConcurrentHashMap<>();
     private final Map<String, AircraftState> enemyAircraft = new ConcurrentHashMap<>();
-    private final Map<String, List<String>> radarContactsByAircraft = new ConcurrentHashMap<>();
+    private final Map<String, List<RadarContact>> radarContactsByAircraft = new ConcurrentHashMap<>();
     private final Map<String, SquadronConnection> squadronConnections = new ConcurrentHashMap<>();
 
 
@@ -27,6 +30,20 @@ public class CommandCenter implements ICommandCenter {
         this.side = side;
         this.base = base;
         this.missleService = new MissleService();
+    }
+
+    public MissleService getMissleService() {
+        return missleService;
+    }
+
+    @Override
+    public AircraftState findAircraftState(String aircraftId) {
+
+        return getFriendlyAircraft()
+                .stream().
+                filter(a -> a.id().equals(aircraftId))
+                .findFirst().orElse(null);
+
     }
 
     @Override
@@ -53,23 +70,9 @@ public class CommandCenter implements ICommandCenter {
     public void updateAircraft(AircraftState aircraftState) {
         if (aircraftState.side() == side) {
             friendlyAircraft.put(aircraftState.id(), aircraftState);
-        } else {
-            enemyAircraft.put(aircraftState.id(), aircraftState);
         }
-
     }
 
-    @Override
-    public void removeAircraft(String aircraftId) {
-
-        if (aircraftId == null || aircraftId.isBlank()) {
-            throw new IllegalArgumentException("Id is not null");
-        }
-
-        friendlyAircraft.remove(aircraftId);
-        enemyAircraft.remove(aircraftId);
-
-    }
     @Override
     public void registerSquadron(String squadronId, SquadronConnection connection) {
         if (squadronConnections.size() >= 2 && !squadronConnections.containsKey(squadronId)) {
@@ -95,71 +98,22 @@ public class CommandCenter implements ICommandCenter {
         connection.send(command);
     }
 
-    @Override
-    public void printAirPicture() {
-        final String RESET = "\u001B[0m";
-        final String GREEN = "\u001B[32m";
-        final String RED = "\u001B[31m";
-        final String CYAN = "\u001B[36m";
-        final String YELLOW = "\u001B[33m";
-
-        System.out.println(CYAN + "=== " + side + " COMMAND CENTER ===" + RESET);
-        System.out.println(YELLOW + "Base: " + base + RESET);
-
-        System.out.println(GREEN + "--- Friendly aircraft ---" + RESET);
-        for (AircraftState a : friendlyAircraft.values()) {
-            System.out.println(GREEN + a.id() + " " + a.type() + " @ " + a.position() + RESET);
-        }
-
-        System.out.println(RED + "--- Enemy aircraft ---" + RESET);
-        for (AircraftState a : enemyAircraft.values()) {
-            System.out.println(RED + a.id() + " " + a.type() + " @ " + a.position() + RESET);
-        }
-    }
-    @Override
-    public void returnAircraftToBase(String aircraftId) {
-        String squadronId = inferSquadronId(aircraftId);
-        if (squadronId == null) {
-            System.out.println("Cannot determine squadron for aircraft: " + aircraftId);
-            return;
-        }
-
-        sendCommand(squadronId, "RETURN_TO_BASE;" + aircraftId);
-    }
-    @Override
-    public void assignPatrol(String aircraftId, String patrolCells) {
-        String squadronId = inferSquadronId(aircraftId);
-        if (squadronId == null) {
-            System.out.println("Cannot determine squadron for aircraft: " + aircraftId);
-            return;
-        }
-
-        sendCommand(squadronId, "PATROL;" + aircraftId + ";" + patrolCells);
-    }
-
-    @Override
-    public void fireAtTarget(String targetId) {
-        missleService.fireAtTarget(targetId);
-    }
-
-    @Override
-    public void fireAtNearestTargets() {
-        System.out.println("TODO: fire available missiles at nearest enemy targets");
-    }
-
-    private String inferSquadronId(String aircraftId) {
-        if (aircraftId == null || aircraftId.length() < 2) {
-            return null;
-        }
-        return aircraftId.substring(0, 2);
-
-    }
-
-    public void updateRadarContacts(String aircraftId, List<String> contacts) {
+    public void updateRadarContacts(String aircraftId, List<RadarContact> contacts) {
         radarContactsByAircraft.put(aircraftId, contacts);
+
+        for (RadarContact contact : contacts) {
+            if (contact.type() != FlyingObjectType.AIRCRAFT) {
+                continue;
+            }
+
+            AircraftState existing = enemyAircraft.get(contact.id());
+            AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
+
+            enemyAircraft.put(contact.id(), updated);
+        }
     }
 
-    public Map<String, List<String>> getRadarContactsByAircraft() {
+    public Map<String, List<RadarContact>> getRadarContactsByAircraft() {
         return radarContactsByAircraft;
     }
 }

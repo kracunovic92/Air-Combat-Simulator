@@ -1,4 +1,4 @@
-package squadron;
+package squadron.aircraft;
 
 public enum AircraftType {
     MIG_31(SpeedClass.VERY_FAST, RadarClass.LONG_RANGE),

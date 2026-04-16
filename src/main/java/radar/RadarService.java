@@ -30,12 +30,14 @@ public class RadarService  implements IRadarService{
                 contacts.add(new RadarContact(other.id(), other.type(), other.position(), distance));
             }
         }
+        System.out.println("Cehcking contract on radar serviced");
+        System.out.println(contacts);
         return contacts;
     }
 
     private double euclideanDistance(Position a, Position b) {
-        double dx = a.x() - b.x();
-        double dy = a.y() - b.y();
+        double dx = a.column() - b.column();
+        double dy = a.row() - b.row();
         return Math.sqrt(dx * dx + dy * dy);
     }
 

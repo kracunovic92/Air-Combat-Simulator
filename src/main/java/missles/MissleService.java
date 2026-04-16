@@ -23,6 +23,9 @@ public class MissleService {
         //TODO: implement later
         return;
     }
+    public void fireAtNearestTargets(){
+        //TODO: implement later
+    }
 
     public void shutdown(){
         launcer.shutdown();

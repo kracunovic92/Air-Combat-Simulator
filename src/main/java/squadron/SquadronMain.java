@@ -4,10 +4,13 @@ import common.GridCell;
 import common.Position;
 import common.Side;
 import radar.client.RadarClient;
+import squadron.aircraft.Aircraft;
+import squadron.aircraft.AircraftType;
 
 
 public class SquadronMain {
 
+    //TODO: Fix handle starting of processes
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.out.println("Missing arguments");

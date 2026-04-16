@@ -3,6 +3,7 @@ package squadron;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+/// Helper for saving all connections and additional information on CommandCenter side.
 public class SquadronConnection {
 
     private final String squadronId;
@@ -14,8 +15,6 @@ public class SquadronConnection {
         this.socket = socket;
         this.out = out;
     }
-
-
 
     public String getSquadronId() {
         return squadronId;

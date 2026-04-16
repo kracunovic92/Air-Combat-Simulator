@@ -1,5 +1,7 @@
 package command.center;
 
+import command.center.CLI.CommandCenterConsole;
+import command.center.CLI.CommandCenterConsoleService;
 import common.GridCell;
 import common.Side;
 
@@ -23,7 +25,8 @@ public class CommandCenterMain {
 
     private static void startBlue() throws Exception {
         CommandCenter center = new CommandCenter(Side.BLUE, new GridCell(0, 0));
-        CommandCenterConsole console = new CommandCenterConsole(center);
+        CommandCenterConsoleService  consoleService = new CommandCenterConsoleService(center);
+        CommandCenterConsole console = new CommandCenterConsole(center, consoleService);
         CommandCenterServer server = new CommandCenterServer(center);
 
         server.start(6001);
@@ -35,7 +38,8 @@ public class CommandCenterMain {
     private static void startRed() throws Exception {
         CommandCenter center = new CommandCenter(Side.RED, new GridCell(7, 7));
         CommandCenterServer server = new CommandCenterServer(center);
-        CommandCenterConsole console = new CommandCenterConsole(center);
+        CommandCenterConsoleService  consoleService = new CommandCenterConsoleService(center);
+        CommandCenterConsole console = new CommandCenterConsole(center, consoleService);
 
         server.start(6002);
         console.start();

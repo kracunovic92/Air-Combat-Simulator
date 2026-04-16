@@ -3,6 +3,7 @@ package command.center;
 import common.AircraftState;
 import common.GridCell;
 import common.Side;
+import missles.MissleService;
 import squadron.SquadronConnection;
 
 import java.util.Collection;
@@ -19,7 +20,6 @@ public interface ICommandCenter {
 
     void updateAircraft(AircraftState aircraftState);
 
-    void removeAircraft(String aircraftId);
 
     void registerSquadron(String squadronId, SquadronConnection connection);
 
@@ -27,15 +27,9 @@ public interface ICommandCenter {
 
     void sendCommand(String squadronId, String command);
 
-    void printAirPicture();
+    MissleService getMissleService();
 
-    void returnAircraftToBase(String aircraftId);
-
-    void assignPatrol(String aircraftId, String patrolCells);
-
-    void fireAtTarget(String targetId);
-
-    void fireAtNearestTargets();
+    AircraftState findAircraftState(String aircraftId);
 
 
 }

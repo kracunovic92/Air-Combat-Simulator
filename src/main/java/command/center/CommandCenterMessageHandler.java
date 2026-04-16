@@ -1,10 +1,14 @@
 package command.center;
 
 import common.AircraftState;
+import common.GridCell;
 import common.Position;
 import common.Side;
-import squadron.AircraftType;
+import radar.FlyingObjectType;
+import radar.RadarContact;
+import squadron.aircraft.AircraftType;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class CommandCenterMessageHandler {
@@ -43,12 +47,13 @@ public class CommandCenterMessageHandler {
     }
 
     private void handlePosition(String[] parts) {
-        if (parts.length != 6) {
+        if (parts.length != 7) {
             System.out.println("Invalid POSITION message");
             return;
         }
 
         String id = parts[1];
+        String squadron_id = parts[6];
         Side aircraftSide = Side.valueOf(parts[2]);
         AircraftType aircraftType = AircraftType.valueOf(parts[3]);
         double x = Double.parseDouble(parts[4]);
@@ -56,6 +61,7 @@ public class CommandCenterMessageHandler {
 
         AircraftState state = new AircraftState(
                 id,
+                squadron_id,
                 aircraftSide,
                 aircraftType,
                 Position.of(x, y)
@@ -65,6 +71,10 @@ public class CommandCenterMessageHandler {
     }
 
     private void handleRadar(String[] parts) {
+        if (parts.length == 2) {
+            commandCenter.updateRadarContacts(parts[1], List.of());
+            return;
+        }
         if (parts.length != 3) {
             System.out.println("Invalid RADAR message");
             return;
@@ -72,13 +82,12 @@ public class CommandCenterMessageHandler {
         String aircraftId = parts[1];
         String rawContacts = parts[2];
 
-        List<String> contacts;
-        if (rawContacts == null || rawContacts.isBlank()) {
-            contacts = List.of();
-        } else {
-            contacts = List.of(rawContacts.split(","));
-        }
-
+        List<RadarContact> contacts;
+        contacts = Arrays.stream(rawContacts.split("\\|"))
+                .map(this::parseRadarContact)
+                .toList();
+        System.out.println("=================================");
+        System.out.println(contacts);
         commandCenter.updateRadarContacts(aircraftId, contacts);
     }
 
@@ -88,8 +97,22 @@ public class CommandCenterMessageHandler {
             return;
         }
 
-        String aircraftId = parts[1];
-        commandCenter.removeAircraft(aircraftId);
+    }
+
+    private RadarContact parseRadarContact(String raw) {
+        String[] fields = raw.split(",", -1);
+        if (fields.length != 4) {
+            throw new IllegalArgumentException("Invalid radar contact: " + raw);
+        }
+
+        String id = fields[0];
+        FlyingObjectType type = FlyingObjectType.valueOf(fields[1]);
+        GridCell cell = GridCell.fromLabel(fields[2]);
+        double distance = Double.parseDouble(fields[3]);
+
+        Position position = new Position(cell.column(), cell.row());
+
+        return new RadarContact(id, type, position, distance);
     }
 
 }

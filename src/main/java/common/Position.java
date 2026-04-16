@@ -1,13 +1,13 @@
 package common;
 
-public record Position(double x, double y)  {
+public record Position(double column, double row)  {
 
     private static final double MIN = 0.0;
     private static final double MAX = 7.9;
 
 
     public Position {
-        validate(x, y);
+        validate(column, row);
     }
 
     public static Position of(double x, double y) {
@@ -24,6 +24,6 @@ public record Position(double x, double y)  {
     }
 
     public Position move(double dx, double dy) {
-        return new Position(x + dx, y + dy);
+        return new Position(column + dx, row + dy);
     }
 }

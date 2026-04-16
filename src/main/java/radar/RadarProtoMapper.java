@@ -15,8 +15,8 @@ public final class RadarProtoMapper {
 
     public static PositionMessage toProto(Position position) {
         return PositionMessage.newBuilder()
-                .setX(position.x())
-                .setY(position.y())
+                .setX(position.column())
+                .setY(position.row())
                 .build();
     }
 
