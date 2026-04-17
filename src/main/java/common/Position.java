@@ -24,6 +24,13 @@ public record Position(double column, double row)  {
     }
 
     public Position move(double dx, double dy) {
-        return new Position(column + dx, row + dy);
+        return Position.clamped(column + dx, row + dy);
+    }
+    public static Position clamped(double x, double y) {
+        return new Position(clamp(x), clamp(y));
+    }
+
+    private static double clamp(double value) {
+        return Math.max(MIN, Math.min(MAX, value));
     }
 }

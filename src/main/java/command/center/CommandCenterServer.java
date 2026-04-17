@@ -69,10 +69,7 @@ public class CommandCenterServer {
             String[] parts = firstLine.split(";");
             if (parts.length >= 3 && "REGISTER_SQUADRON".equals(parts[0])) {
                 String squadronId = parts[2];
-                commandCenter.registerSquadron(
-                        squadronId,
-                        new SquadronConnection(squadronId, client, writer)
-                );
+                commandCenter.registerSquadron(squadronId, new SquadronConnection(squadronId, client, writer));
                 messageHandler.handle(firstLine);
             } else {
                 System.out.println("Expected REGISTER_SQUADRON, got: " + firstLine);

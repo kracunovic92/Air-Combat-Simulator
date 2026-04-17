@@ -64,9 +64,11 @@ public class Aircraft implements Runnable {
             stateLock.notifyAll();
         }
     }
+    /// For now just teleport Aircraft to base
     public void handleReturnToBase(){
 
         synchronized (stateLock){
+
             patrolCell = side.base();
             position = new Position(patrolCell.column(), patrolCell.row());
             mode = AircraftMode.LANDED;

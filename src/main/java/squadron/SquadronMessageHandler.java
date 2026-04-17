@@ -27,6 +27,7 @@ public class SquadronMessageHandler {
 
     }
     private void handleReturnToBase(String[] parts) {
+
         if (parts.length != 2) {
             System.out.println("Invalid RETURN_TO_BASE command");
             return;

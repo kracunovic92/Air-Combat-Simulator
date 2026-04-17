@@ -26,7 +26,6 @@ public class CommandCenter implements ICommandCenter {
 
 
     public CommandCenter(Side side, GridCell base){
-
         this.side = side;
         this.base = base;
         this.missleService = new MissleService();
@@ -89,7 +88,9 @@ public class CommandCenter implements ICommandCenter {
 
     @Override
     public void sendCommand(String squadronId, String command) {
+
         SquadronConnection connection = squadronConnections.get(squadronId);
+
         if (connection == null) {
             System.out.println("No connected squadron: " + squadronId);
             return;
@@ -107,6 +108,9 @@ public class CommandCenter implements ICommandCenter {
             }
 
             AircraftState existing = enemyAircraft.get(contact.id());
+            if (existing == null){
+                continue;
+            }
             AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
 
             enemyAircraft.put(contact.id(), updated);

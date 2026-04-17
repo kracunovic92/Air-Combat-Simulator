@@ -86,8 +86,6 @@ public class CommandCenterMessageHandler {
         contacts = Arrays.stream(rawContacts.split("\\|"))
                 .map(this::parseRadarContact)
                 .toList();
-        System.out.println("=================================");
-        System.out.println(contacts);
         commandCenter.updateRadarContacts(aircraftId, contacts);
     }
 
