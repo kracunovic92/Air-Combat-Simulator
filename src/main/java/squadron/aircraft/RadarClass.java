@@ -2,7 +2,8 @@ package squadron.aircraft;
 
 public enum RadarClass {
     STANDARD(2.0),
-    LONG_RANGE(7.0); //TODO: Revert this after testing
+    LONG_RANGE(4.0),
+    UNKNOWN(0);
 
     private final double range;
 

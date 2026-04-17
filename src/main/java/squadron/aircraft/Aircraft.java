@@ -1,5 +1,6 @@
 package squadron.aircraft;
 
+import common.AircraftState;
 import common.GridCell;
 import common.Position;
 import common.Side;
@@ -54,6 +55,9 @@ public class Aircraft implements Runnable {
     }
     public Side getSide(){
         return  side;
+    }
+    public AircraftState getState(){
+        return new AircraftState(id,squadron.getSquadronId(),side,type,position);
     }
 
     public void  handleAssignPatrol(GridCell cell){

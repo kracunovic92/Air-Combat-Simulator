@@ -9,9 +9,7 @@ import radar.RadarContact;
 import squadron.SquadronConnection;
 import squadron.aircraft.AircraftType;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CommandCenter implements ICommandCenter {
@@ -100,24 +98,65 @@ public class CommandCenter implements ICommandCenter {
     }
 
     public void updateRadarContacts(String aircraftId, List<RadarContact> contacts) {
+
+        updateEnemyWatchByAircraft(aircraftId, contacts);
+
         radarContactsByAircraft.put(aircraftId, contacts);
 
         for (RadarContact contact : contacts) {
             if (contact.type() != FlyingObjectType.AIRCRAFT) {
                 continue;
             }
-
-            AircraftState existing = enemyAircraft.get(contact.id());
-            if (existing == null){
+            if (friendlyAircraft.containsKey(contact.id())) {
+                AircraftState existing = friendlyAircraft.get(contact.id());
+                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
+                friendlyAircraft.put(contact.id(),updated);
                 continue;
             }
-            AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
+            if(enemyAircraft.containsKey(contact.id())){
+                AircraftState existing = enemyAircraft.get(contact.id());
+                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
+                enemyAircraft.put(contact.id(),updated);
 
-            enemyAircraft.put(contact.id(), updated);
+            }else{
+
+                AircraftState enemy = new AircraftState(contact.id(),"enemy",oposideSide(),AircraftType.UNKNOWN,contact.position());
+                enemyAircraft.put(contact.id(), enemy);
+            }
+        }
+
+    }
+    private void updateEnemyWatchByAircraft(String aircraftId, List<RadarContact> newContacts ){
+
+        List<RadarContact> lastList = radarContactsByAircraft.getOrDefault(aircraftId, new ArrayList<>());
+
+        if(lastList.isEmpty()){
+            return;
+        }
+
+        for(RadarContact contact : lastList){
+
+            boolean exist = false;
+            String enemyId = contact.id();
+
+            for(RadarContact newContact : newContacts){
+
+                String newId = newContact.id();
+
+                if(Objects.equals(newContact.id(), contact.id()) && enemyAircraft.containsKey(newId)){
+                    exist = true;
+                }
+            }
+            if(!exist){
+                enemyAircraft.remove(enemyId);
+            }
         }
     }
-
-    public Map<String, List<RadarContact>> getRadarContactsByAircraft() {
-        return radarContactsByAircraft;
+    private Side oposideSide(){
+        if(side == Side.BLUE){
+            return Side.RED;
+        }
+        return Side.BLUE;
     }
+
 }

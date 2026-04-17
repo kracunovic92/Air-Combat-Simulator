@@ -7,8 +7,8 @@ public enum AircraftType {
     F_35(SpeedClass.FAST, RadarClass.LONG_RANGE),
     SU_30(SpeedClass.FAST, RadarClass.STANDARD),
     SU_35(SpeedClass.FAST, RadarClass.LONG_RANGE),
-    SU_57(SpeedClass.FAST, RadarClass.LONG_RANGE);
-
+    SU_57(SpeedClass.FAST, RadarClass.LONG_RANGE),
+    UNKNOWN(SpeedClass.UNKNOWN, RadarClass.UNKNOWN);
     private final SpeedClass speedClass;
     private final RadarClass radarClass;
 

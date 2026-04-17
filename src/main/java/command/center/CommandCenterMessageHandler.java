@@ -35,13 +35,32 @@ public class CommandCenterMessageHandler {
     }
 
     private void handleRegister(String[] parts) {
-        if (parts.length < 3) {
+        if (parts.length < 4) {
             System.out.println("Invalid REGISTER_SQUADRON message");
             return;
         }
 
         String side = parts[1];
         String squadronId = parts[2];
+        String aircraftPayload = parts[3];
+
+        if (aircraftPayload.isBlank()) {
+            System.out.println("Squadron registered without aircraft: " + squadronId + " (" + side + ")");
+            return;
+        }
+
+        String[] aircraftEntries = aircraftPayload.split("\\|");
+
+        for (String entry : aircraftEntries) {
+            AircraftState state = parseAircraftState(entry);
+
+            if (state == null) {
+                System.out.println("Skipping invalid aircraft entry: " + entry);
+                continue;
+            }
+
+            commandCenter.updateAircraft(state);
+        }
 
         System.out.println("Squadron registered: " + squadronId + " (" + side + ")");
     }
@@ -59,13 +78,7 @@ public class CommandCenterMessageHandler {
         double x = Double.parseDouble(parts[4]);
         double y = Double.parseDouble(parts[5]);
 
-        AircraftState state = new AircraftState(
-                id,
-                squadron_id,
-                aircraftSide,
-                aircraftType,
-                Position.of(x, y)
-        );
+        AircraftState state = new AircraftState(id, squadron_id, aircraftSide, aircraftType, Position.of(x, y));
 
         commandCenter.updateAircraft(state);
     }
@@ -111,6 +124,33 @@ public class CommandCenterMessageHandler {
         Position position = new Position(cell.column(), cell.row());
 
         return new RadarContact(id, type, position, distance);
+    }
+
+    private AircraftState parseAircraftState(String data) {
+        String[] fields = data.split(",");
+
+        if (fields.length != 6) {
+            return null;
+        }
+
+        try {
+            String id = fields[0];
+            String squadronId = fields[1];
+            Side aircraftSide = Side.valueOf(fields[2]);
+            AircraftType aircraftType = AircraftType.valueOf(fields[3]);
+            double x = Double.parseDouble(fields[4]);
+            double y = Double.parseDouble(fields[5]);
+
+            return new AircraftState(
+                    id,
+                    squadronId,
+                    aircraftSide,
+                    aircraftType,
+                    Position.clamped(x, y)
+            );
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

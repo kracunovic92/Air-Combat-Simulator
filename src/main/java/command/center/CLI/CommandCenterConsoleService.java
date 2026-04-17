@@ -3,7 +3,6 @@ package command.center.CLI;
 import command.center.ICommandCenter;
 import common.AircraftState;
 import common.GridCell;
-import java.util.List;
 
 
 public class CommandCenterConsoleService implements ICommandCenterConsole {

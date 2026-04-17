@@ -2,7 +2,8 @@ package squadron.aircraft;
 
 public enum SpeedClass {
     VERY_FAST(100, 400),
-    FAST(150, 800);
+    FAST(150, 800),
+    UNKNOWN(100,200);
 
     private final int minPause;
     private final int maxPause;

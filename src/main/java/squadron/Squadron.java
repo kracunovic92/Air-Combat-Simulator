@@ -104,7 +104,7 @@ public class Squadron {
 
         messageWriter = new SquadronWriter(out);
 
-        messageWriter.sendRegister(side, squadronId);
+        messageWriter.sendRegister(side, squadronId, aircraftList);
 
         thread = new Thread(() -> {
             try {
@@ -205,5 +205,6 @@ public class Squadron {
     public Side getSide() {
         return side;
     }
+    public String getSquadronId(){return squadronId;}
 
 }

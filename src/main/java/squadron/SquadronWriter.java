@@ -1,9 +1,11 @@
 package squadron;
 
+import common.AircraftState;
 import common.GridCell;
 import common.Position;
 import common.Side;
 import radar.RadarContact;
+import squadron.aircraft.Aircraft;
 import squadron.aircraft.AircraftType;
 
 import java.io.PrintWriter;
@@ -18,8 +20,13 @@ public class SquadronWriter {
         this.out = out;
     }
 
-    public synchronized void sendRegister(Side side, String squadronId) {
-        out.println("REGISTER_SQUADRON;" + side + ";" + squadronId);
+    public synchronized void sendRegister(Side side, String squadronId, List<Aircraft> aircrafts) {
+
+        String s = aircrafts.stream()
+                .map(aircraft -> serializeAircraftState(aircraft.getState()))
+                .collect(Collectors.joining("|"));
+
+        out.println("REGISTER_SQUADRON;" + side + ";" + squadronId + ";" + s);
     }
 
     public synchronized void sendPosition(String id, Side side, AircraftType type, Position position, String squadron_id) {
@@ -56,5 +63,13 @@ public class SquadronWriter {
                 + "," + contact.type()
                 + "," + label
                 + "," + contact.distance();
+    }
+    private String serializeAircraftState(AircraftState state) {
+        return state.id()
+                + "," + state.squadron_id()
+                + "," + state.side()
+                + "," + state.type()
+                + "," + state.position().column()
+                + "," + state.position().row();
     }
 }
