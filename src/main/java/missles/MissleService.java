@@ -2,22 +2,37 @@ package missles;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MissleService {
 
     private final ExecutorService launcer = Executors.newFixedThreadPool(5);
-    private int availableMissiles = 20;
+    private final AtomicInteger availableMissiles = new AtomicInteger(20);
 
-    public boolean hasMissiles(){
-        return availableMissiles > 0;
+    public int hasMissiles(){
+        return availableMissiles.get();
     }
 
-    public boolean consume(){
-        if(hasMissiles()){
-            availableMissiles--;
-            return true;
+    public boolean tryConsume(){
+
+        while(true){
+            int current = availableMissiles.get();
+            if(current <= 0){
+                return false;
+            }
+            if(availableMissiles.compareAndSet(current,current-1)){
+                return  true;
+            }
         }
-        return false;
+    }
+
+    public Future<MissileResult> fire(MissileTask task){
+
+        if(!tryConsume()){
+            throw  new IllegalStateException("No missles avail");
+        }
+        return launcer.submit(task);
     }
     public void fireAtTarget(String targetId){
         //TODO: implement later

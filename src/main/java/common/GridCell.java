@@ -45,4 +45,8 @@ public record GridCell(int column, int row) {
         char col = (char) ('A' + column);
         return col + Integer.toString(row + 1);
     }
+    public Position toPosition(){
+
+        return new Position(column, row);
+    }
 }

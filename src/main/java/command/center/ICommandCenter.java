@@ -3,10 +3,13 @@ package command.center;
 import common.AircraftState;
 import common.GridCell;
 import common.Side;
+import missles.MissileResult;
 import missles.MissleService;
 import squadron.SquadronConnection;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Future;
 
 public interface ICommandCenter {
 
@@ -31,5 +34,6 @@ public interface ICommandCenter {
 
     AircraftState findAircraftState(String aircraftId);
 
-
+     Future<MissileResult> fireAtTarget(String targetId);
+     List<Future<MissileResult>> fireAtNearestTargets();
 }

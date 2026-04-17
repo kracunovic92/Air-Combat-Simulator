@@ -48,12 +48,13 @@ public class CommandCenterConsoleService implements ICommandCenterConsole {
 
     @Override
     public void fireAtTarget(String targetId) {
-        commandCenter.getMissleService().fireAtTarget(targetId);
+        commandCenter.fireAtTarget(targetId);
     }
 
     @Override
     public void fireAtNearestTargets() {
-        commandCenter.getMissleService().fireAtNearestTargets();
+
+        commandCenter.fireAtNearestTargets();
     }
 
 

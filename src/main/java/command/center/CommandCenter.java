@@ -2,7 +2,10 @@ package command.center;
 
 import common.AircraftState;
 import common.GridCell;
+import common.Position;
 import common.Side;
+import missles.MissileResult;
+import missles.MissileTask;
 import missles.MissleService;
 import radar.FlyingObjectType;
 import radar.RadarContact;
@@ -11,6 +14,7 @@ import squadron.aircraft.AircraftType;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 public class CommandCenter implements ICommandCenter {
 
@@ -77,6 +81,31 @@ public class CommandCenter implements ICommandCenter {
         }
 
         squadronConnections.put(squadronId, connection);
+    }
+
+    @Override
+    public Future<MissileResult> fireAtTarget(String targetId) {
+        AircraftState target = enemyAircraft.get(targetId);
+        if (target == null) {
+            throw new IllegalArgumentException("Unknown target: " + targetId);
+        }
+
+        Position launchPosition = base.toPosition();
+        Position targetPosition = target.position();
+
+        MissileTask task = new MissileTask(UUID.randomUUID().toString(), target.id(), launchPosition, targetPosition, this);
+
+        return missleService.fire(task);
+    }
+    @Override
+    public List<Future<MissileResult>> fireAtNearestTargets() {
+        Position basePosition = base.toPosition();
+
+        return enemyAircraft.values().stream()
+                .sorted(Comparator.comparingDouble(a -> distance(basePosition, a.position())))
+                .limit(5)
+                .map(a -> fireAtTarget(a.id()))
+                .toList();
     }
 
     @Override
@@ -159,4 +188,9 @@ public class CommandCenter implements ICommandCenter {
         return Side.BLUE;
     }
 
+    private double distance(Position a, Position b) {
+        double dx = a.column() - b.column();
+        double dy = a.row() - b.row();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
