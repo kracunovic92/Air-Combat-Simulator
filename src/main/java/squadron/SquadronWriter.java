@@ -57,11 +57,11 @@ public class SquadronWriter {
 
         int col = (int)Math.floor(contact.position().column());
         int row = (int)Math.floor(contact.position().row());
-        String label = GridCell.toLabel(row,col);
 
         return contact.id()
                 + "," + contact.type()
-                + "," + label
+                + "," + contact.position().column()
+                + "," + contact.position().row()
                 + "," + contact.distance();
     }
     private String serializeAircraftState(AircraftState state) {

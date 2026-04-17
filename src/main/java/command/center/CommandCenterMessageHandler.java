@@ -112,16 +112,17 @@ public class CommandCenterMessageHandler {
 
     private RadarContact parseRadarContact(String raw) {
         String[] fields = raw.split(",", -1);
-        if (fields.length != 4) {
+        if (fields.length != 5) {
             throw new IllegalArgumentException("Invalid radar contact: " + raw);
         }
 
         String id = fields[0];
         FlyingObjectType type = FlyingObjectType.valueOf(fields[1]);
-        GridCell cell = GridCell.fromLabel(fields[2]);
-        double distance = Double.parseDouble(fields[3]);
+        double col = Double.parseDouble(fields[2]);
+        double row = Double.parseDouble(fields[3]);
+        double distance = Double.parseDouble(fields[4]);
 
-        Position position = new Position(cell.column(), cell.row());
+        Position position = new Position(col, row);
 
         return new RadarContact(id, type, position, distance);
     }

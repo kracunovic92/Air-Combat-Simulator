@@ -109,13 +109,13 @@ public class CommandCenter implements ICommandCenter {
             }
             if (friendlyAircraft.containsKey(contact.id())) {
                 AircraftState existing = friendlyAircraft.get(contact.id());
-                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
+                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), existing.position());
                 friendlyAircraft.put(contact.id(),updated);
                 continue;
             }
             if(enemyAircraft.containsKey(contact.id())){
                 AircraftState existing = enemyAircraft.get(contact.id());
-                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), contact.position());
+                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), existing.position());
                 enemyAircraft.put(contact.id(),updated);
 
             }else{
