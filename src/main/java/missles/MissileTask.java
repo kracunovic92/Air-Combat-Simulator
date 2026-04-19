@@ -1,6 +1,6 @@
 package missles;
 
-import command.center.CommandCenter;
+import command_center.CommandCenter;
 import common.Position;
 import radar.FlyingObjectType;
 import radar.RadarContact;

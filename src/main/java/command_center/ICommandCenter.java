@@ -1,4 +1,4 @@
-package command.center;
+package command_center;
 
 import common.AircraftState;
 import common.GridCell;

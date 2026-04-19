@@ -1,6 +1,6 @@
-package command.center.CLI;
+package command_center.CLI;
 
-import command.center.ICommandCenter;
+import command_center.ICommandCenter;
 import common.AircraftState;
 import common.GridCell;
 

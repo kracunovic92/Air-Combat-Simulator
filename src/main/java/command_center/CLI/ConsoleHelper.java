@@ -1,4 +1,4 @@
-package command.center.CLI;
+package command_center.CLI;
 
 public final class ConsoleHelper {
 

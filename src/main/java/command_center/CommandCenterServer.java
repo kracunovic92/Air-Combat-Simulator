@@ -1,4 +1,4 @@
-package command.center;
+package command_center;
 import squadron.SquadronConnection;
 
 import java.io.BufferedReader;

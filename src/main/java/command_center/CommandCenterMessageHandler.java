@@ -1,7 +1,6 @@
-package command.center;
+package command_center;
 
 import common.AircraftState;
-import common.GridCell;
 import common.Position;
 import common.Side;
 import radar.FlyingObjectType;

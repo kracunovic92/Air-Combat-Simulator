@@ -1,7 +1,7 @@
-package command.center;
+package command_center;
 
-import command.center.CLI.CommandCenterConsole;
-import command.center.CLI.CommandCenterConsoleService;
+import command_center.CLI.CommandCenterConsole;
+import command_center.CLI.CommandCenterConsoleService;
 import common.GridCell;
 import common.Side;
 
