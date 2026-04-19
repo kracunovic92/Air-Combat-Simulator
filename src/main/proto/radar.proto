@@ -22,6 +22,7 @@ message ReportAndScanRequest {
   FlyingObjectTypeMessage type = 2;
   PositionMessage position = 3;
   double radarRange = 4;
+  string targetId = 5;
 }
 
 message RadarContactMessage {
@@ -33,6 +34,9 @@ message RadarContactMessage {
 
 message ReportAndScanResponse {
   repeated RadarContactMessage contacts = 1;
+  bool self_destroyed = 2;
+  bool hit_confirmed = 3;
+  string hit_target_id = 4;
 }
 
 service RadarGrpcService {

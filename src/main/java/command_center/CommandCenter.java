@@ -38,13 +38,20 @@ public class CommandCenter implements ICommandCenter {
     }
 
     @Override
-    public AircraftState findAircraftState(String aircraftId) {
+    public AircraftState findFriendlyState(String aircraftId) {
 
         return getFriendlyAircraft()
                 .stream().
                 filter(a -> a.id().equals(aircraftId))
                 .findFirst().orElse(null);
 
+    }
+    @Override
+    public AircraftState findEnemyState(String aircraftId){
+        return getEnemyAircraft()
+                .stream()
+                .filter(a -> a.id().equals(aircraftId))
+                .findFirst().orElse(null);
     }
 
     @Override
@@ -192,5 +199,9 @@ public class CommandCenter implements ICommandCenter {
         double dx = a.column() - b.column();
         double dy = a.row() - b.row();
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    public void handleDestroyed(String id){
+        friendlyAircraft.remove(id);
     }
 }

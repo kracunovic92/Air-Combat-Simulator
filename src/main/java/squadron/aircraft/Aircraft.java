@@ -6,6 +6,7 @@ import common.Position;
 import common.Side;
 import radar.FlyingObjectType;
 import radar.RadarContact;
+import radar.RadarScanResult;
 import radar.client.RadarClient;
 import squadron.Squadron;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Aircraft implements Runnable {
 
     private static final double STEP = 0.1;
+    public static final double AIRCRAFT_SPEED =  0.1;
 
     private final String id;
     private final Side side;
@@ -101,6 +103,11 @@ public class Aircraft implements Runnable {
                     while (active && mode == AircraftMode.LANDED){
                         stateLock.wait();
                     }
+
+                    if (!active || mode == AircraftMode.DESTROYED) {
+                        break;
+                    }
+
                 }
                 tick();
                 pauseAccordingToSpeed();
@@ -115,6 +122,25 @@ public class Aircraft implements Runnable {
         }
 
     }
+
+    public void handleDestroyed() {
+        synchronized (stateLock) {
+            if (mode == AircraftMode.DESTROYED) {
+                return;
+            }
+
+            squadron.handleDestroyed(id);
+            mode = AircraftMode.DESTROYED;
+            active = false;
+            stateLock.notifyAll();
+        }
+
+        Thread t = thread;
+        if (t != null) {
+            t.interrupt();
+        }
+    }
+
     public void stopAircraft() {
         active = false;
         Thread t = thread;
@@ -129,6 +155,8 @@ public class Aircraft implements Runnable {
                 case PATROLLING -> movePatrol();
                 case LANDED -> {
 
+                }
+                case DESTROYED -> {
                 }
             }
         }
@@ -158,15 +186,20 @@ public class Aircraft implements Runnable {
     }
     private void notifyCommandCenter(){
 
+        if (!active || mode == AircraftMode.DESTROYED) {
+            return;
+        }
         try {
-            List<RadarContact> contactList = radarClient.reportAndScan(
-                    id,
-                    FlyingObjectType.AIRCRAFT,
-                    position,
-                    type.getRadarClass().getRange()
-            );
+            RadarScanResult scanResult = radarClient.reportAndScan(id, FlyingObjectType.AIRCRAFT, position, type.getRadarClass().getRange(), null);
+
+            if (scanResult.selfDestroyed()) {
+                handleDestroyed();
+                return;
+            }
+
             squadron.sendPosition(id, side, type, position);
-            squadron.sendRadarContacts(id, contactList);
+            squadron.sendRadarContacts(id, scanResult.contacts());
+
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -204,4 +237,6 @@ public class Aircraft implements Runnable {
     private double round1(double value) {
         return Math.round(value * 10.0) / 10.0;
     }
+
+
 }

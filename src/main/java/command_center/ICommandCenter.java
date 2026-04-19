@@ -32,7 +32,9 @@ public interface ICommandCenter {
 
     MissleService getMissleService();
 
-    AircraftState findAircraftState(String aircraftId);
+    AircraftState findFriendlyState(String aircraftId);
+
+    AircraftState findEnemyState(String aircraftId);
 
      Future<MissileResult> fireAtTarget(String targetId);
      List<Future<MissileResult>> fireAtNearestTargets();

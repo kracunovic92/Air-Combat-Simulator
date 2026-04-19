@@ -4,7 +4,9 @@ import command_center.CommandCenter;
 import common.Position;
 import radar.FlyingObjectType;
 import radar.RadarContact;
+import radar.RadarScanResult;
 import radar.client.RadarClient;
+import squadron.aircraft.Aircraft;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -22,7 +24,7 @@ public class MissileTask implements Callable<MissileResult> {
 
     private Position currentPosition;
 
-    private static final double MISSILE_SPEED = 0.4;
+    private static final double MISSILE_SPEED = Aircraft.AIRCRAFT_SPEED * 2;
     private static final double DRIFT = 0.05;
     private static final double RADAR_RANGE = 0.3;
 
@@ -38,25 +40,34 @@ public class MissileTask implements Callable<MissileResult> {
 
     @Override
     public MissileResult call() throws Exception {
-        while (true) {
-            moveTowardTargetWithDrift();
 
-            List<RadarContact> contacts = radarClient.reportAndScan(missileId, FlyingObjectType.MISSILE, currentPosition, RADAR_RANGE);
+        try{
+            while(!Thread.currentThread().isInterrupted()){
 
-            boolean targetSeen = contacts.stream()
-                    .anyMatch(c -> c.type() == FlyingObjectType.AIRCRAFT && c.id().equals(targetId));
+                if (commandCenter.findEnemyState(targetId) == null){
 
-            if (targetSeen) {
+                    return new MissileResult(missileId,targetId,MissileOutcome.TARGET_DESTROYED,currentPosition);
+                }
+                moveTowardTargetWithDrift();
+                RadarScanResult scanResult = radarClient.reportAndScan(missileId, FlyingObjectType.MISSILE, currentPosition, RADAR_RANGE, targetId);
 
-                //TODO:: Report hit
+                if (scanResult.hitConfirmed()) {
+                    return new MissileResult(missileId, targetId, MissileOutcome.HIT, currentPosition);
+                }
+
+                if (reachedTargetCoordinates()) {
+                    return new MissileResult(missileId, targetId, MissileOutcome.MISS, currentPosition);
+                }
+
+
+                Thread.sleep(200);
             }
+            Thread.currentThread().interrupt();
 
-            if (reachedTargetCoordinates()) {
-                //TODO:: Report miss
-                return new MissileResult(missileId, targetId, false, currentPosition);
-            }
+            return new MissileResult(missileId, targetId, MissileOutcome.MISS, currentPosition);
 
-            Thread.sleep(200);
+        } finally {
+            radarClient.shutdown();
         }
     }
 

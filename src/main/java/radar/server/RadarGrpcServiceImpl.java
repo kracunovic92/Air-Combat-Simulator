@@ -2,10 +2,7 @@ package radar.server;
 
 import common.Position;
 import io.grpc.stub.StreamObserver;
-import radar.FlyingObjectType;
-import radar.IRadarService;
-import radar.RadarContact;
-import radar.RadarProtoMapper;
+import radar.*;
 import radar.grpc.*;
 
 import java.util.List;
@@ -23,16 +20,23 @@ public class RadarGrpcServiceImpl extends RadarGrpcServiceGrpc.RadarGrpcServiceI
             StreamObserver<ReportAndScanResponse> responseObserver
     ){
         try {
-            List<RadarContact> contacts = radarService.reportAndScan(
+            RadarScanResult result = radarService.reportAndScan(
                     request.getId(),
                     RadarProtoMapper.fromProto(request.getType()),
                     RadarProtoMapper.fromProto(request.getPosition()),
-                    request.getRadarRange()
+                    request.getRadarRange(),
+                    request.getTargetId()
             );
 
-            ReportAndScanResponse.Builder responseBuilder = ReportAndScanResponse.newBuilder();
+            ReportAndScanResponse.Builder responseBuilder = ReportAndScanResponse.newBuilder()
+                    .setSelfDestroyed(result.selfDestroyed())
+                    .setHitConfirmed(result.hitConfirmed());
 
-            for (RadarContact contact : contacts) {
+            if (result.hitTargetId() != null) {
+                responseBuilder.setHitTargetId(result.hitTargetId());
+            }
+
+            for (RadarContact contact : result.contacts()) {
                 responseBuilder.addContacts(RadarProtoMapper.toProto(contact));
             }
 

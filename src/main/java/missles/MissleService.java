@@ -10,10 +10,6 @@ public class MissleService {
     private final ExecutorService launcer = Executors.newFixedThreadPool(5);
     private final AtomicInteger availableMissiles = new AtomicInteger(20);
 
-    public int hasMissiles(){
-        return availableMissiles.get();
-    }
-
     public boolean tryConsume(){
 
         while(true){
@@ -33,13 +29,6 @@ public class MissleService {
             throw  new IllegalStateException("No missles avail");
         }
         return launcer.submit(task);
-    }
-    public void fireAtTarget(String targetId){
-        //TODO: implement later
-        return;
-    }
-    public void fireAtNearestTargets(){
-        //TODO: implement later
     }
 
     public void shutdown(){

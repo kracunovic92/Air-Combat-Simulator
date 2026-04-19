@@ -6,6 +6,7 @@ import io.grpc.ManagedChannelBuilder;
 import radar.FlyingObjectType;
 import radar.RadarContact;
 import radar.RadarProtoMapper;
+import radar.RadarScanResult;
 import radar.grpc.*;
 
 import java.util.ArrayList;
@@ -22,22 +23,35 @@ public class RadarClient {
 
     }
 
-    public List<RadarContact> reportAndScan(String id, FlyingObjectType type, Position position, double radarRange) {
+    public RadarScanResult reportAndScan(String id, FlyingObjectType type, Position position, double radarRange, String targetId) {
 
-        ReportAndScanRequest request = ReportAndScanRequest.newBuilder()
+        ReportAndScanRequest.Builder builder = ReportAndScanRequest.newBuilder()
                 .setId(id)
                 .setType(RadarProtoMapper.toProto(type))
                 .setPosition(RadarProtoMapper.toProto(position))
-                .setRadarRange(radarRange)
-                .build();
+                .setRadarRange(radarRange);
 
-        ReportAndScanResponse response = blockingStub.reportAndScan(request);
+        if (targetId != null && !targetId.isBlank()) {
+            builder.setTargetId(targetId);
+        }
+
+        ReportAndScanResponse response = blockingStub.reportAndScan(builder.build());
 
         List<RadarContact> contacts = new ArrayList<>();
         for (RadarContactMessage c : response.getContactsList()) {
             contacts.add(RadarProtoMapper.fromProto(c));
         }
 
-        return contacts;
+        String hitTargetId = response.getHitTargetId().isBlank()
+                ? null
+                : response.getHitTargetId();
+
+        return new RadarScanResult(contacts, response.getSelfDestroyed(), response.getHitConfirmed(), hitTargetId);
+    }
+    public void shutdown(){
+
+        if(channel != null && !channel.isShutdown()){
+            channel.shutdown();
+        }
     }
 }

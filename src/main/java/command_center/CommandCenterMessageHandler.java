@@ -29,6 +29,7 @@ public class CommandCenterMessageHandler {
             case "POSITION" -> handlePosition(parts);
             case "RADAR" -> handleRadar(parts);
             case "LANDED" -> handleLanded(parts);
+            case "DESTROYED" -> handleDestoryed(parts);
             default -> System.out.println("Unknown message: " + line);
         }
     }
@@ -106,6 +107,15 @@ public class CommandCenterMessageHandler {
             System.out.println("Invalid LANDED message");
             return;
         }
+
+    }
+    private void handleDestoryed(String[] parts){
+        if(parts.length != 2){
+            throw new IllegalArgumentException("Invalid destroy arguments");
+        }
+        String id = parts[1];
+
+        commandCenter.handleDestroyed(id);
 
     }
 

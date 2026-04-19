@@ -201,6 +201,10 @@ public class Squadron {
         aircraft.handleAssignPatrol(GridCell.fromLabel(patrolCellLabel));
 
     }
+    public void handleDestroyed(String aircraftId){
+        System.out.println(" Squadron gets destroy message  " + squadronId + "   " + aircraftId);
+        messageWriter.sendDestroyed(aircraftId);
+    }
 
     public Side getSide() {
         return side;

@@ -26,7 +26,7 @@ public class CommandCenterConsoleService implements ICommandCenterConsole {
 
     @Override
     public void returnAircraftToBase(String aircraftId) {
-        AircraftState state = commandCenter.findAircraftState(aircraftId);
+        AircraftState state = commandCenter.findFriendlyState(aircraftId);
         if (state == null) {
             System.out.println("Aircraft not found: " + aircraftId);
             return;
@@ -37,7 +37,7 @@ public class CommandCenterConsoleService implements ICommandCenterConsole {
 
     @Override
     public void assignPatrol(String aircraftId, String patrolCells) {
-        AircraftState state = commandCenter.findAircraftState(aircraftId);
+        AircraftState state = commandCenter.findFriendlyState(aircraftId);
         if (state == null) {
             System.out.println("Aircraft not found: " + aircraftId);
             return;

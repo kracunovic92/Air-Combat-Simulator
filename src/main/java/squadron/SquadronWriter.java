@@ -40,6 +40,12 @@ public class SquadronWriter {
                         squadron_id
         );
     }
+    public synchronized  void sendDestroyed(String id){
+        out.println(
+                "DESTROYED;" +
+                        id
+        );
+    }
 
     public synchronized void sendRadarContacts(String aircraftId, List<RadarContact> contacts) {
         String payload = contacts.stream()
