@@ -4,6 +4,7 @@ import common.AircraftState;
 import common.GridCell;
 import common.Side;
 import missles.MissileResult;
+import missles.MissileState;
 import missles.MissleService;
 import squadron.SquadronConnection;
 
@@ -38,4 +39,6 @@ public interface ICommandCenter {
 
      Future<MissileResult> fireAtTarget(String targetId);
      List<Future<MissileResult>> fireAtNearestTargets();
+
+     Collection<MissileState> getActiveMissiles();
 }

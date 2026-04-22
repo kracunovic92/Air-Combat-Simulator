@@ -50,12 +50,13 @@ public class MissileTask implements Callable<MissileResult> {
                 }
                 moveTowardTargetWithDrift();
                 RadarScanResult scanResult = radarClient.reportAndScan(missileId, FlyingObjectType.MISSILE, currentPosition, RADAR_RANGE, targetId);
-
+                System.out.println(scanResult);
                 if (scanResult.hitConfirmed()) {
                     return new MissileResult(missileId, targetId, MissileOutcome.HIT, currentPosition);
                 }
 
                 if (reachedTargetCoordinates()) {
+                    System.out.println("Reached coordinates");
                     return new MissileResult(missileId, targetId, MissileOutcome.MISS, currentPosition);
                 }
 
@@ -67,7 +68,16 @@ public class MissileTask implements Callable<MissileResult> {
             return new MissileResult(missileId, targetId, MissileOutcome.MISS, currentPosition);
 
         } finally {
-            radarClient.shutdown();
+            try {
+                radarClient.removeTrackedObject(missileId);
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+
+            } finally {
+                radarClient.shutdown();
+            }
         }
     }
 

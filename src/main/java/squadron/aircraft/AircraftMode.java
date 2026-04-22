@@ -3,5 +3,7 @@ package squadron.aircraft;
 public enum AircraftMode {
     PATROLLING,
     LANDED,
-    DESTROYED
+    DESTROYED,
+    MOVING_TO_PATROL,
+    RETURNING_TO_BASE
 }

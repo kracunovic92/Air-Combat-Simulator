@@ -47,5 +47,24 @@ public class RadarGrpcServiceImpl extends RadarGrpcServiceGrpc.RadarGrpcServiceI
         }
     }
 
+    @Override
+    public void removeTrackedObject(
+            RemoveTrackedObjectRequest request,
+            StreamObserver<RemoveTrackedObjectResponse> responseObserver
+    ) {
+        try {
+            boolean removed = radarService.removeTrackedObject(request.getId());
+
+            RemoveTrackedObjectResponse response = RemoveTrackedObjectResponse.newBuilder()
+                    .setRemoved(removed)
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(e);
+        }
+    }
+
 
 }

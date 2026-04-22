@@ -5,6 +5,7 @@ import common.GridCell;
 import common.Position;
 import common.Side;
 import missles.MissileResult;
+import missles.MissileState;
 import missles.MissileTask;
 import missles.MissleService;
 import radar.FlyingObjectType;
@@ -15,6 +16,7 @@ import squadron.aircraft.AircraftType;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CommandCenter implements ICommandCenter {
 
@@ -25,7 +27,7 @@ public class CommandCenter implements ICommandCenter {
     private final Map<String, AircraftState> enemyAircraft = new ConcurrentHashMap<>();
     private final Map<String, List<RadarContact>> radarContactsByAircraft = new ConcurrentHashMap<>();
     private final Map<String, SquadronConnection> squadronConnections = new ConcurrentHashMap<>();
-
+    private final Map<String, MissileState> activeMissiles = new ConcurrentHashMap<>();
 
     public CommandCenter(Side side, GridCell base){
         this.side = side;
@@ -99,7 +101,6 @@ public class CommandCenter implements ICommandCenter {
 
         Position launchPosition = base.toPosition();
         Position targetPosition = target.position();
-
         MissileTask task = new MissileTask(UUID.randomUUID().toString(), target.id(), launchPosition, targetPosition, this);
 
         return missleService.fire(task);
@@ -113,6 +114,11 @@ public class CommandCenter implements ICommandCenter {
                 .limit(5)
                 .map(a -> fireAtTarget(a.id()))
                 .toList();
+    }
+
+    @Override
+    public Collection<MissileState> getActiveMissiles() {
+        return activeMissiles.values();
     }
 
     @Override
@@ -140,18 +146,36 @@ public class CommandCenter implements ICommandCenter {
         radarContactsByAircraft.put(aircraftId, contacts);
 
         for (RadarContact contact : contacts) {
-            if (contact.type() != FlyingObjectType.AIRCRAFT) {
+            if (contact.type() == FlyingObjectType.MISSILE) {
+                Side missileSide = resolveMissileSide(contact.id());
+                MissileState updated = new MissileState(
+                        contact.id(),
+                        missileSide,
+                        contact.position()
+                );
+
+                activeMissiles.put(contact.id(), updated);
                 continue;
             }
             if (friendlyAircraft.containsKey(contact.id())) {
                 AircraftState existing = friendlyAircraft.get(contact.id());
-                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), existing.position());
+                AircraftState updated = new AircraftState(
+                        contact.id(),
+                        existing.squadron_id(),
+                        existing.side(),
+                        existing.type(),
+                        contact.position());
                 friendlyAircraft.put(contact.id(),updated);
                 continue;
             }
             if(enemyAircraft.containsKey(contact.id())){
                 AircraftState existing = enemyAircraft.get(contact.id());
-                AircraftState updated = new AircraftState(contact.id(), existing.squadron_id(),existing.side(), existing.type(), existing.position());
+                AircraftState updated = new AircraftState(
+                        contact.id(),
+                        existing.squadron_id(),
+                        existing.side(),
+                        existing.type(),
+                        contact.position());
                 enemyAircraft.put(contact.id(),updated);
 
             }else{
@@ -161,6 +185,9 @@ public class CommandCenter implements ICommandCenter {
             }
         }
 
+    }
+    private Side resolveMissileSide(String missileId) {
+        return oposideSide();
     }
     private void updateEnemyWatchByAircraft(String aircraftId, List<RadarContact> newContacts ){
 
@@ -194,6 +221,7 @@ public class CommandCenter implements ICommandCenter {
         }
         return Side.BLUE;
     }
+
 
     private double distance(Position a, Position b) {
         double dx = a.column() - b.column();

@@ -38,6 +38,7 @@ public class Aircraft implements Runnable {
     private volatile  Position position;
     private volatile Thread thread;
     private volatile  boolean active = true;
+    private volatile Position destination;
 
     public Aircraft(String id, AircraftType type, Position initialPosition, GridCell patrolCell, RadarClient radarClient, Squadron squadron){
         this.id = id;
@@ -65,8 +66,8 @@ public class Aircraft implements Runnable {
     public void  handleAssignPatrol(GridCell cell){
         synchronized (stateLock){
             patrolCell = cell;
-            position = new Position(cell.column(), cell.row());
-            mode = AircraftMode.PATROLLING;
+            destination = new Position(cell.column() + 0.5, cell.row() + 0.5);
+            mode = AircraftMode.MOVING_TO_PATROL;
             stateLock.notifyAll();
         }
     }
@@ -76,8 +77,8 @@ public class Aircraft implements Runnable {
         synchronized (stateLock){
 
             patrolCell = side.base();
-            position = new Position(patrolCell.column(), patrolCell.row());
-            mode = AircraftMode.LANDED;
+            destination = new Position(patrolCell.column()+ 0.5, patrolCell.row()+ 0.5);
+            mode = AircraftMode.RETURNING_TO_BASE;
             squadron.sendLanded(id);
             stateLock.notifyAll();
         }
@@ -158,6 +159,46 @@ public class Aircraft implements Runnable {
                 }
                 case DESTROYED -> {
                 }
+                case RETURNING_TO_BASE, MOVING_TO_PATROL -> moveTowardDestination();
+            }
+        }
+    }
+    private void moveTowardDestination() {
+        if (destination == null) {
+            return;
+        }
+
+        Position current = position;
+
+        double dx = destination.column() - current.column();
+        double dy = destination.row() - current.row();
+        double len = Math.sqrt(dx * dx + dy * dy);
+
+        if (len <= AIRCRAFT_SPEED) {
+            position = destination;
+            onDestinationReached();
+            return;
+        }
+
+        double stepX = (dx / len) * AIRCRAFT_SPEED;
+        double stepY = (dy / len) * AIRCRAFT_SPEED;
+
+        position = Position.of(round1(current.column() + stepX), round1(current.row() + stepY));
+    }
+
+    private void onDestinationReached() {
+        switch (mode) {
+            case MOVING_TO_PATROL -> {
+                mode = AircraftMode.PATROLLING;
+                destination = null;
+            }
+            case RETURNING_TO_BASE -> {
+                mode = AircraftMode.LANDED;
+                destination = null;
+                squadron.sendLanded(id);
+            }
+            default -> {
+                destination = null;
             }
         }
     }

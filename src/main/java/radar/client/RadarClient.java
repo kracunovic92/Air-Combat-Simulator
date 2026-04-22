@@ -36,7 +36,6 @@ public class RadarClient {
         }
 
         ReportAndScanResponse response = blockingStub.reportAndScan(builder.build());
-
         List<RadarContact> contacts = new ArrayList<>();
         for (RadarContactMessage c : response.getContactsList()) {
             contacts.add(RadarProtoMapper.fromProto(c));
@@ -47,6 +46,15 @@ public class RadarClient {
                 : response.getHitTargetId();
 
         return new RadarScanResult(contacts, response.getSelfDestroyed(), response.getHitConfirmed(), hitTargetId);
+    }
+
+    public boolean removeTrackedObject(String id) {
+        RemoveTrackedObjectRequest request = RemoveTrackedObjectRequest.newBuilder()
+                .setId(id)
+                .build();
+
+        RemoveTrackedObjectResponse response = blockingStub.removeTrackedObject(request);
+        return response.getRemoved();
     }
     public void shutdown(){
 

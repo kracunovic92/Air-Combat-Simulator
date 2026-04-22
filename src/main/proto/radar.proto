@@ -31,7 +31,13 @@ message RadarContactMessage {
   PositionMessage position = 3;
   double distance = 4;
 }
+message RemoveTrackedObjectRequest {
+  string id = 1;
+}
 
+message RemoveTrackedObjectResponse {
+  bool removed = 1;
+}
 message ReportAndScanResponse {
   repeated RadarContactMessage contacts = 1;
   bool self_destroyed = 2;
@@ -41,4 +47,6 @@ message ReportAndScanResponse {
 
 service RadarGrpcService {
   rpc ReportAndScan(ReportAndScanRequest) returns (ReportAndScanResponse);
+  rpc RemoveTrackedObject(RemoveTrackedObjectRequest) returns (RemoveTrackedObjectResponse);
+
 }

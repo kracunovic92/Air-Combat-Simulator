@@ -24,12 +24,31 @@ public class TrackedFlyingObject {
     public double radarRange() { return radarRange; }
     public boolean destroyed() { return destroyed; }
 
-    public void update(Position position, double radarRange) {
+    public synchronized void update(Position position, double radarRange) {
         this.position = position;
         this.radarRange = radarRange;
     }
-
-    public void markDestroyed() {
+    public synchronized void markDestroyed() {
         this.destroyed = true;
+    }
+    public synchronized boolean tryDestroyIfAircraftWithinRange(Position attackerPosition, double range) {
+        if (destroyed) {
+            return false;
+        }
+
+        if (type != FlyingObjectType.AIRCRAFT) {
+            return false;
+        }
+
+        double dx = attackerPosition.column() - position.column();
+        double dy = attackerPosition.row() - position.row();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > range) {
+            return false;
+        }
+
+        destroyed = true;
+        return true;
     }
 }

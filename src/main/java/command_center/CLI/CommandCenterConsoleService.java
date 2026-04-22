@@ -3,6 +3,10 @@ package command_center.CLI;
 import command_center.ICommandCenter;
 import common.AircraftState;
 import common.GridCell;
+import missles.MissileState;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class CommandCenterConsoleService implements ICommandCenterConsole {
@@ -18,10 +22,19 @@ public class CommandCenterConsoleService implements ICommandCenterConsole {
 
     @Override
     public void printAirPicture() {
+        List<AircraftState> friendly = new ArrayList<>(commandCenter.getFriendlyAircraft());
+        List<AircraftState> enemy = new ArrayList<>(commandCenter.getEnemyAircraft());
+        List<MissileState> missiles = new ArrayList<>(commandCenter.getActiveMissiles());
 
-        gridPrinter.print(commandCenter.getSide(), commandCenter.getBase(), commandCenter.getFriendlyAircraft(), commandCenter.getEnemyAircraft());
 
-        printDetailedLists();
+        gridPrinter.print(
+                commandCenter.getSide(),
+                commandCenter.getBase(),
+                friendly,
+                enemy,
+                missiles);
+
+        printDetailedLists(friendly,enemy);
     }
 
     @Override
@@ -58,9 +71,9 @@ public class CommandCenterConsoleService implements ICommandCenterConsole {
     }
 
 
-    private void printDetailedLists() {
+    private void printDetailedLists( List<AircraftState> friendly, List<AircraftState> enemy) {
         System.out.println("Friendly aircraft:");
-        for (AircraftState aircraft : commandCenter.getFriendlyAircraft()) {
+        for (AircraftState aircraft : friendly) {
             GridCell cell = toGridCell(aircraft);
             System.out.println("  "
                     + Colors.color(aircraft.id(), Colors.GREEN)
@@ -70,7 +83,7 @@ public class CommandCenterConsoleService implements ICommandCenterConsole {
         }
 
         System.out.println("Enemy aircraft:");
-        for (AircraftState aircraft : commandCenter.getEnemyAircraft()) {
+        for (AircraftState aircraft : enemy) {
             GridCell cell = toGridCell(aircraft);
             System.out.println("  "
                     + Colors.color(aircraft.id(), Colors.RED)

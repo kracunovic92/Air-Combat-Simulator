@@ -30,6 +30,12 @@ public class RadarService implements IRadarService {
         return new RadarScanResult(contacts, false, hitResult.hitConfirmed(), hitResult.hitTargetId());
     }
 
+    @Override
+    public boolean removeTrackedObject(String id) {
+        System.out.println("Remove tracked: " + id);
+        return trackedObjects.remove(id) != null;
+    }
+
     private TrackedFlyingObject updateObject(String id, FlyingObjectType type, Position position, double radarRange ){
         return trackedObjects.compute(id, (key, existing) -> {
             if (existing == null) {
@@ -76,19 +82,9 @@ public class RadarService implements IRadarService {
             return HitResult.noHit();
         }
 
-        if (target.destroyed()) {
-            return HitResult.noHit();
-        }
-
-        if (target.type() != FlyingObjectType.AIRCRAFT) {
-            return HitResult.noHit();
-        }
-
-        double distance = euclideanDistance(missilePosition, target.position());
-
-        if (distance <= radarRange) {
-            System.out.println("Marking it  destroyed");
-            target.markDestroyed();
+        boolean hit = target.tryDestroyIfAircraftWithinRange(missilePosition, radarRange);
+        if (hit) {
+            System.out.println("Marking it destroyed");
             return HitResult.hit(target.id());
         }
         return HitResult.noHit();

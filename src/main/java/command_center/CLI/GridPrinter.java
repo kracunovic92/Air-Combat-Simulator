@@ -3,6 +3,7 @@ package command_center.CLI;
 import common.AircraftState;
 import common.GridCell;
 import common.Side;
+import missles.MissileState;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,7 +14,7 @@ public class GridPrinter {
     private static final int GRID_SIZE = 8;
     private static final int CELL_WIDTH = 10;
 
-    public void print(Side side, GridCell base, Collection<AircraftState> friendlyAircraft, Collection<AircraftState> enemyAircraft) {
+    public void print(Side side, GridCell base, Collection<AircraftState> friendlyAircraft, Collection<AircraftState> enemyAircraft, Collection<MissileState> activeMissiles) {
 
         List<String>[][] grid = createEmptyGrid();
 
@@ -25,6 +26,10 @@ public class GridPrinter {
 
         for (AircraftState aircraft : enemyAircraft) {
             placeAircraft(grid, aircraft, false);
+        }
+
+        for (MissileState missile : activeMissiles) {
+            placeMissile(grid, missile);
         }
         System.out.println();
         System.out.println("=== " + side + " COMMAND CENTER TACTICAL MAP ===");
@@ -96,5 +101,24 @@ public class GridPrinter {
     private String formatCell(List<String> cell, int width) {
         String text = String.join(",", cell);
         return ConsoleHelper.padText(text, width);
+    }
+
+    private void placeMissile(List<String>[][] grid, MissileState missile) {
+        double xPos = missile.position().column();
+        double yPos = missile.position().row();
+
+        int x = ConsoleHelper.clampToGrid((int) Math.floor(xPos), GRID_SIZE);
+        int y = ConsoleHelper.clampToGrid((int) Math.floor(yPos), GRID_SIZE);
+
+        String shortId = "M:" + shortenId(missile.id());
+        String color =  Colors.YELLOW;
+
+        grid[y][x].add(Colors.color(shortId, color));
+    }
+    private String shortenId(String id) {
+        if (id == null || id.isBlank()) {
+            return "?";
+        }
+        return id.length() <= 4 ? id : id.substring(0, 4);
     }
 }
